@@ -5,7 +5,7 @@ color. This module is indended for use with pywal"""
 
 import os
 import subprocess
-from typing import Tuple
+from typing import List, Tuple
 
 ACCENT_DEFINITIONS = {
     -2: ('Blue', (0.000000, 0.874510, 1.000000)),
@@ -131,9 +131,9 @@ def get_closeness(color1: Tuple[float, float, float], color2: Tuple[float, float
     return sum([abs(color1[i] - color2[i]) for i in range(0, 3)])
 
 
-def get_closest_color(hex_color: str) -> int:
+def get_closest_to_single_color(hex_color: str) -> int:
     """Return the closest color to the input in ACCENT_DEFINITIONS"""
-    lowest_closeness_so_far = 1
+    lowest_closeness_so_far = 3
     closest_color = -2
 
     decimal_rgb = hex_color_to_decimal_rgb(hex_color)
@@ -147,10 +147,37 @@ def get_closest_color(hex_color: str) -> int:
     return closest_color
 
 
-def set_closest_color(hex_color: str) -> None:
+def get_cumulative_closest_to_multiple_colors(hex_colors: List[str]) -> int:
+    """Return the closest color to all of the input colors that is in ACCENT_DEFINITIONS
+    based on a cumulative comparison"""
+    decimal_rgb_colors = [hex_color_to_decimal_rgb(hex_color) for hex_color in hex_colors]
+
+    lowest_closeness_so_far = 3 * len(decimal_rgb_colors)
+    closest_color = -2
+
+    for i in list(dict.keys(ACCENT_DEFINITIONS)):
+        current_closeness = sum([get_closeness(decimal_rgb_color, ACCENT_DEFINITIONS[i][1]) for decimal_rgb_color in decimal_rgb_colors])
+        if current_closeness < lowest_closeness_so_far:
+            lowest_closeness_so_far = current_closeness
+            closest_color = i
+
+    return closest_color
+
+
+def get_mean_closest_to_multiple_colors(hex_colors: List[str]) -> int:
+    """Return the closest color to all of the input colors that is in ACCENT_DEFINITIONS
+    based on a mean of the individuals"""
+    closest_colors = [get_closest_to_single_color(hex_color) for hex_color in hex_colors]
+
+    occurrences_of_closest_colors = {list.count(closest_colors, closest_color): closest_color for closest_color in closest_colors}
+
+    return occurrences_of_closest_colors[max(dict.keys(occurrences_of_closest_colors))]
+
+
+def set_closest_color(hex_colors: List[str]) -> None:
     """Get the closest color with get_closest_color
     then set both the highlight and accent colors"""
-    closest = get_closest_color(hex_color)
+    closest = get_mean_closest_to_multiple_colors(hex_colors)
     set_accent(closest)
     set_highlight(closest)
 
