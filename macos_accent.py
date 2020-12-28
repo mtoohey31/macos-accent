@@ -1,7 +1,7 @@
-"""This module allows for interactions with MacOS's highlight and accent color preferences.
+"""This module allows for interactions with MacOS's highlight and accent colour preferences.
 It does so through system command using the default command. It is also able to determine
-a "closest" color to a given hex input and set the accent and highlight colors to that
-color. This module is indended for use with pywal"""
+a "closest" colour to a given hex input and set the accent and highlight colours to that
+colour. This module is indended for use with pywal"""
 
 import os
 import subprocess
@@ -37,7 +37,7 @@ def read_accent() -> int:
 
 
 def set_accent(value: int) -> None:
-    """Uses OS commands to se the MacOS accent color
+    """Uses OS commands to se the MacOS accent colour
 
     Preconditions:
         - value in set(dict.keys(ACCENT_DEFINITIONS))
@@ -67,20 +67,20 @@ def read_highlight() -> int:
     output = subprocess.run("defaults read 'Apple Global Domain' AppleHighlightColor",
                             shell=True, capture_output=True)
     if output.returncode == 0:
-        color_text = str.split(output.stdout.decode("utf-8"), ' ')[3]
-        color_text = color_text[0:len(color_text) - 1]
+        colour_text = str.split(output.stdout.decode("utf-8"), ' ')[3]
+        colour_text = colour_text[0:len(colour_text) - 1]
 
         for i in set(dict.keys(ACCENT_DEFINITIONS)):
-            if ACCENT_DEFINITIONS[i][0] == color_text:
+            if ACCENT_DEFINITIONS[i][0] == colour_text:
                 return i
 
-        raise ValueError('Defaults returned unexpected color text')
+        raise ValueError('Defaults returned unexpected colour text')
     else:
         return -2
 
 
 def set_highlight(value: int) -> None:
-    """Uses OS commands to se the MacOS highlight color
+    """Uses OS commands to se the MacOS highlight colour
 
     Preconditions:
         - value in set(dict.keys(ACCENT_DEFINITIONS))
@@ -100,26 +100,26 @@ def set_highlight(value: int) -> None:
         os.system("defaults delete 'Apple Global Domain' AppleHighlightColor")
 
 
-def hex_color_to_decimal_rgb(hex_color: str) -> Tuple[float, float, float]:
-    """Convert a given hex color into a decimal rgb tuple
+def hex_colour_to_decimal_rgb(hex_colour: str) -> Tuple[float, float, float]:
+    """Convert a given hex colour into a decimal rgb tuple
     >>> from math import isclose
     >>> expected = (0.941176471, 0.682352941, 0.356862745)
-    >>> result = hex_color_to_decimal_rgb('f0ae5b')
+    >>> result = hex_colour_to_decimal_rgb('f0ae5b')
     >>> all([isclose(expected[i], result[i]) for i in range(0, 3)])
     True
     """
-    if hex_color[0] == '#':
-        return (int(hex_color[1:3], 16) / 255,
-                int(hex_color[3:5], 16) / 255,
-                int(hex_color[5:7], 16) / 255)
+    if hex_colour[0] == '#':
+        return (int(hex_colour[1:3], 16) / 255,
+                int(hex_colour[3:5], 16) / 255,
+                int(hex_colour[5:7], 16) / 255)
     else:
-        return (int(hex_color[0:2], 16) / 255,
-                int(hex_color[2:4], 16) / 255,
-                int(hex_color[4:6], 16) / 255)
+        return (int(hex_colour[0:2], 16) / 255,
+                int(hex_colour[2:4], 16) / 255,
+                int(hex_colour[4:6], 16) / 255)
 
 
-def get_closeness(color1: Tuple[float, float, float], color2: Tuple[float, float, float]) -> float:
-    """Return a float representing how close two decimal rgb color values are
+def get_closeness(colour1: Tuple[float, float, float], colour2: Tuple[float, float, float]) -> float:
+    """Return a float representing how close two decimal rgb colour values are. The lower the number, the closer the colours.
 
     >>> from math import isclose
     >>> result = get_closeness((0.5, 0.5, 0.5), (0.4, 0.4, 0.4))
@@ -128,56 +128,56 @@ def get_closeness(color1: Tuple[float, float, float], color2: Tuple[float, float
     >>> get_closeness((0, 0, 0), (0, 1, 0))
     1
     """
-    return sum([abs(color1[i] - color2[i]) for i in range(0, 3)])
+    return sum([abs(colour1[i] - colour2[i]) for i in range(0, 3)])
 
 
-def get_closest_to_single_color(hex_color: str) -> int:
-    """Return the closest color to the input in ACCENT_DEFINITIONS"""
+def get_closest_to_single_colour(hex_colour: str) -> int:
+    """Return the closest colour to the input in ACCENT_DEFINITIONS"""
     lowest_closeness_so_far = 3
-    closest_color = -2
+    closest_colour = -2
 
-    decimal_rgb = hex_color_to_decimal_rgb(hex_color)
+    decimal_rgb = hex_colour_to_decimal_rgb(hex_colour)
 
     for i in list(dict.keys(ACCENT_DEFINITIONS)):
         current_closeness = get_closeness(decimal_rgb, ACCENT_DEFINITIONS[i][1])
         if current_closeness < lowest_closeness_so_far:
             lowest_closeness_so_far = current_closeness
-            closest_color = i
+            closest_colour = i
 
-    return closest_color
+    return closest_colour
 
 
-def get_cumulative_closest_to_multiple_colors(hex_colors: List[str]) -> int:
-    """Return the closest color to all of the input colors that is in ACCENT_DEFINITIONS
+def get_cumulative_closest_to_multiple_colours(hex_colours: List[str]) -> int:
+    """Return the closest colour to all of the input colours that is in ACCENT_DEFINITIONS
     based on a cumulative comparison"""
-    decimal_rgb_colors = [hex_color_to_decimal_rgb(hex_color) for hex_color in hex_colors]
+    decimal_rgb_colours = [hex_colour_to_decimal_rgb(hex_colour) for hex_colour in hex_colours]
 
-    lowest_closeness_so_far = 3 * len(decimal_rgb_colors)
-    closest_color = -2
+    lowest_closeness_so_far = 3 * len(decimal_rgb_colours)
+    closest_colour = -2
 
     for i in list(dict.keys(ACCENT_DEFINITIONS)):
-        current_closeness = sum([get_closeness(decimal_rgb_color, ACCENT_DEFINITIONS[i][1]) for decimal_rgb_color in decimal_rgb_colors])
+        current_closeness = sum([get_closeness(decimal_rgb_colour, ACCENT_DEFINITIONS[i][1]) for decimal_rgb_colour in decimal_rgb_colours])
         if current_closeness < lowest_closeness_so_far:
             lowest_closeness_so_far = current_closeness
-            closest_color = i
+            closest_colour = i
 
-    return closest_color
+    return closest_colour
 
 
-def get_mean_closest_to_multiple_colors(hex_colors: List[str]) -> int:
-    """Return the closest color to all of the input colors that is in ACCENT_DEFINITIONS
+def get_mean_closest_to_multiple_colours(hex_colours: List[str]) -> int:
+    """Return the closest colour to all of the input colours that is in ACCENT_DEFINITIONS
     based on a mean of the individuals"""
-    closest_colors = [get_closest_to_single_color(hex_color) for hex_color in hex_colors]
+    closest_colours = [get_closest_to_single_colour(hex_colour) for hex_colour in hex_colours]
 
-    occurrences_of_closest_colors = {list.count(closest_colors, closest_color): closest_color for closest_color in closest_colors}
+    occurrences_of_closest_colours = {list.count(closest_colours, closest_colour): closest_colour for closest_colour in closest_colours}
 
-    return occurrences_of_closest_colors[max(dict.keys(occurrences_of_closest_colors))]
+    return occurrences_of_closest_colours[max(dict.keys(occurrences_of_closest_colours))]
 
 
-def set_closest_color(hex_colors: List[str]) -> None:
-    """Get the closest color with get_closest_color
-    then set both the highlight and accent colors"""
-    closest = get_mean_closest_to_multiple_colors(hex_colors)
+def set_closest_colour(hex_colours: List[str]) -> None:
+    """Get the closest colour with get_closest_colour
+    then set both the highlight and accent colours"""
+    closest = get_mean_closest_to_multiple_colours(hex_colours)
     set_accent(closest)
     set_highlight(closest)
 
